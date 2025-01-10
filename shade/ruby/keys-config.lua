@@ -98,6 +98,18 @@ local function tag_double_select(i, colnum)
 	end
 end
 
+-- swap client to new tag
+local function client_double_swap(i, colnum)
+  if client.focus then
+  	local screen = awful.screen.focused()
+    local tag = screen.tags[i]
+    if tag.selected then
+  	  tag = (i <= colnum) and screen.tags[i + colnum] or screen.tags[i - colnum]
+    end
+    client.focus:move_to_tag(tag)
+  end
+end
+
 -- tag management by index
 local function tag_toogle_by_index(i)
 	awful.tag.viewtoggle(awful.screen.focused().tags[i])
@@ -262,7 +274,7 @@ function hotkeys:init(args)
 			{ description = "Select previous option", group = "Selection" }
 		},
 		{
-			{}, "l", logout.action.select_next,
+			{}, "k", logout.action.select_next,
 			{ description = "Select next option", group = "Selection" }
 		},
 	}
@@ -273,15 +285,15 @@ function hotkeys:init(args)
 	------------------------------------------------------------
 	local menu_keys_move = {
 		{
-			{ env.mod }, "k", redflat.menu.action.down,
+			{ env.mod }, "j", redflat.menu.action.down,
 			{ description = "Select next item", group = "Navigation" }
 		},
 		{
-			{ env.mod }, "i", redflat.menu.action.up,
+			{ env.mod }, "k", redflat.menu.action.up,
 			{ description = "Select previous item", group = "Navigation" }
 		},
 		{
-			{ env.mod }, "j", redflat.menu.action.back,
+			{ env.mod }, "h", redflat.menu.action.back,
 			{ description = "Go back", group = "Navigation" }
 		},
 		{
@@ -764,6 +776,19 @@ function hotkeys:init(args)
 	--------------------------------------------------------------------------------
 	self.raw.root = {
 		{
+			{ }, "Print", function() awful.spawn("flameshot screen -c") end, {}
+		},
+		{
+			{ "Shift" }, "Print", function() awful.spawn("flameshot gui") end, {}
+		},
+		{
+			{ "Mod1" }, "Shift_L", function() redflat.widget.keyboard:toggle() end,
+			{ description = "Toggle keyboard", group = "Help" }
+		},
+		{
+			{ "Shift" }, "Alt_L", function() redflat.widget.keyboard:toggle() end, {}
+		},
+		{
 			{ env.mod }, "F1", function() redtip:show() end,
 			{ description = "[Hold] Awesome hotkeys helper", group = "Help" }
 		},
@@ -780,10 +805,10 @@ function hotkeys:init(args)
 			{ env.mod }, "b", function() redflat.float.bartip:show() end,
 			{ description = "[Hold] Titlebar control", group = "Window control" }
 		},
-		{
-			{ env.mod }, "h", function() redflat.float.control:show() end,
-			{ description = "[Hold] Floating window control mode", group = "Window control" }
-		},
+--		{
+--			{ env.mod }, "h", function() redflat.float.control:show() end,
+--			{ description = "[Hold] Floating window control mode", group = "Window control" }
+--		},
 
 		{
 			{ env.mod }, "Return", function() awful.spawn(env.terminal) end,
@@ -794,26 +819,34 @@ function hotkeys:init(args)
 			{ description = "Clipboard manager", group = "Applications" }
 		},
 
+--		{
+--			{ env.mod }, "l", focus_switch_byd("right"),
+--			{ description = "Go to right client", group = "Client focus" }
+--		},
+--		{
+--			{ env.mod }, "j", focus_switch_byd("left"),
+--			{ description = "Go to left client", group = "Client focus" }
+--		},
+--		{
+--			{ env.mod }, "i", focus_switch_byd("up"),
+--			{ description = "Go to upper client", group = "Client focus" }
+--		},
+--		{
+--			{ env.mod }, "k", focus_switch_byd("down"),
+--			{ description = "Go to lower client", group = "Client focus" }
+--		},
 		{
-			{ env.mod }, "l", focus_switch_byd("right"),
-			{ description = "Go to right client", group = "Client focus" }
+			{ env.mod }, "j", function() awful.client.focus.byidx(1) end,
+			{ description = "Focus next by index", group = "Client keys" }
 		},
 		{
-			{ env.mod }, "j", focus_switch_byd("left"),
-			{ description = "Go to left client", group = "Client focus" }
+			{ env.mod }, "k", function() awful.client.focus.byidx(-1) end,
+			{ description = "Focus previous by index", group = "Client keys" }
 		},
-		{
-			{ env.mod }, "i", focus_switch_byd("up"),
-			{ description = "Go to upper client", group = "Client focus" }
-		},
-		{
-			{ env.mod }, "k", focus_switch_byd("down"),
-			{ description = "Go to lower client", group = "Client focus" }
-		},
-		{
-			{ env.mod }, "u", awful.client.urgent.jumpto,
-			{ description = "Go to urgent client", group = "Client focus" }
-		},
+--		{
+--			{ env.mod }, "u", awful.client.urgent.jumpto,
+--			{ description = "Go to urgent client", group = "Client focus" }
+--		},
 		--{
 		--	{ env.mod }, "z", focus_to_previous,
 		--	{ description = "Go to previos client", group = "Client focus" }
@@ -989,6 +1022,7 @@ function hotkeys:init(args)
 		self.keys.root = awful.util.table.join(
 			self.keys.root,
 			tag_numkey(i, { env.mod },            function(_) tag_double_select(i, tcn) end),
+      awful.key({ env.mod, "Shift" }, "#" .. i + 9, function() client_double_swap(i, tcn) end),
 			tag_numkey(i, { env.mod, "Control" }, function(t) awful.tag.viewtoggle(t)   end)
 		)
 	end
